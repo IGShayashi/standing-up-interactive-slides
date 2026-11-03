@@ -1,0 +1,36 @@
+name: expire-page
+# 2026年12月31日（日本時間）を過ぎたら、公開ページを「公開期間は終了しました」に差し替える
+on:
+  schedule:
+    - cron: '10 15 * * *'   # 毎日 日本時間 00:10
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '確認のみ（差し替えない）'
+        type: boolean
+        default: true
+permissions:
+  contents: write
+  pages: write
+jobs:
+  expire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 期限を確認して差し替え
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY: ${{ inputs.dry_run }}
+        run: |
+          TODAY=$(TZ=Asia/Tokyo date +%Y%m%d)
+          echo "today(JST)=$TODAY  / end=20261231"
+          if [ "$TODAY" -le 20261231 ]; then echo "公開期間内です。何もしません。"; exit 0; fi
+          if cmp -s index.html expired.html; then echo "すでに差し替え済みです。"; exit 0; fi
+          if [ "$DRY" = "true" ]; then echo "[dry-run] 期限切れのため差し替え対象です（実行はしません）"; exit 0; fi
+          cp expired.html index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "公開期間の終了に伴い、ページを差し替え"
+          git push
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" || true

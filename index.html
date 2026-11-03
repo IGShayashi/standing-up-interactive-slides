@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>立ち上がり動作の身体運動学とバランス｜操作できる3枚</title>
+<script>
+/* 公開期間：2026年12月31日まで（2027-01-01 00:00 JST 以降は表示しない） */
+(function(){if(Date.now()>=Date.parse('2027-01-01T00:00:00+09:00')){
+document.open();document.write('<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>公開期間は終了しました</title></head><body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f4f2ec;color:#1b2631"><div style="text-align:center;padding:24px"><h1 style="font-size:28px">公開期間は終了しました</h1><p style="margin-top:12px;color:#5d6b7a">この教材は2026年12月31日まで公開していました。</p></div></body></html>');document.close();}})();
+</script>
+<style>
+:root{
+  --bg:#f7f5f0;--paper:#fff;--ink:#1c2733;--mute:#5d6b7a;--line:#d9d4c8;
+  --accent:#0e6b72;--amber:#d98e04;--red:#c43d2f;--green:#1f8a5b;--blue:#2c5fa8;--violet:#6b4fa3;--slate:#47566a;
+  --red-bg:#fbeae7;--green-bg:#e4f4ec;--amber-bg:#fdf3dc;--blue-bg:#e6eef9;--violet-bg:#efeaf7;--teal-bg:#e1f1f2;
+  --font:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic","Meiryo",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#11171e;font-family:var(--font);color:var(--ink)}
+#stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;background:var(--bg);overflow:hidden}
+.slide{position:absolute;inset:0;padding:52px 68px 46px;display:none;background:var(--bg)}
+.slide.active{display:block}
+.slide[data-sec="0"]{--sec:var(--slate)}
+.slide[data-sec="1"]{--sec:var(--violet)}
+.slide[data-sec="2"]{--sec:var(--red)}
+.slide[data-sec="3"]{--sec:var(--blue)}
+.slide[data-sec="4"]{--sec:var(--accent)}
+.slide[data-sec="5"]{--sec:var(--amber)}
+.slide::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background:var(--sec)}
+.kicker{font-size:15px;letter-spacing:.08em;font-weight:700;color:var(--sec);margin-bottom:8px;display:flex;gap:12px;align-items:center}
+.kicker .tm{font-weight:500;color:var(--mute);letter-spacing:0}
+h1{font-size:50px;line-height:1.25;font-weight:800;letter-spacing:.01em}
+h2{font-size:38px;line-height:1.3;font-weight:800;margin-bottom:20px}
+h3{font-size:24px;font-weight:700;margin-bottom:8px}
+p{font-size:25px;line-height:1.55}
+ul,ol{font-size:25px;padding-left:1.1em}
+li{font-size:1em;line-height:1.55;margin:.25em 0}
+.small{font-size:19px;color:var(--mute);line-height:1.5}
+.tiny{font-size:15px;color:var(--mute)}
+.src{position:absolute;left:68px;bottom:16px;right:150px;font-size:13.5px;color:var(--mute);line-height:1.35}
+.pg{position:absolute;right:28px;bottom:16px;font-size:14px;color:var(--mute);font-variant-numeric:tabular-nums}
+.step{opacity:0;transform:translateY(8px);transition:opacity .35s,transform .35s;pointer-events:none}
+.step.on{opacity:1;transform:none;pointer-events:auto}
+.row{display:flex;gap:28px}.col{flex:1;min-width:0}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 22px}
+.card.red{background:var(--red-bg);border-color:#e9b9b2}.card.green{background:var(--green-bg);border-color:#a9d9c1}
+.card.amber{background:var(--amber-bg);border-color:#ecd08f}.card.blue{background:var(--blue-bg);border-color:#b5c9e8}
+.card.violet{background:var(--violet-bg);border-color:#cfc3e6}.card.teal{background:var(--teal-bg);border-color:#a9d3d6}
+.tag{display:inline-block;font-size:14px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--ink);color:#fff;margin-right:8px;vertical-align:middle}
+.tag.red{background:var(--red)}.tag.green{background:var(--green)}.tag.amber{background:var(--amber)}.tag.blue{background:var(--blue)}.tag.violet{background:var(--violet)}.tag.teal{background:var(--accent)}.tag.slate{background:var(--slate)}
+.big-q{font-size:54px;line-height:1.4;font-weight:800}
+.center{display:flex;flex-direction:column;justify-content:center;height:100%}
+.hl{background:linear-gradient(transparent 62%,#ffe08a 62%)}
+.red-t{color:var(--red)}.green-t{color:var(--green)}.teal-t{color:var(--accent)}.mute{color:var(--mute)}
+b{font-weight:800}
+svg text{font-family:var(--font)}
+canvas{display:block}
+.ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:17px}
+.btn{font:inherit;font-size:17px;font-weight:700;padding:7px 16px;border-radius:9px;border:2px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer}
+.btn.on{background:var(--accent);color:#fff}
+.btn:hover{filter:brightness(.95)}
+input[type=range]{accent-color:var(--accent);width:220px}
+.chip{display:inline-block;font-size:15px;font-weight:700;padding:3px 12px;border-radius:8px;margin-right:6px}
+table.t{border-collapse:collapse;width:100%;font-size:21px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+table.t th{background:#ece8dd;font-weight:700}
+.notes{display:none}
+body.shownotes .notes{display:block;position:fixed;left:0;right:0;bottom:0;max-height:34vh;overflow:auto;background:rgba(17,23,30,.95);color:#e8edf2;font-size:16px;line-height:1.6;padding:14px 24px;z-index:50;white-space:pre-wrap}
+#nav{position:fixed;right:12px;top:10px;display:flex;gap:6px;z-index:60;opacity:.0;transition:opacity .2s}
+body:hover #nav{opacity:.85}
+#nav button{font:inherit;font-size:14px;border:0;border-radius:6px;padding:5px 9px;background:#2b3745;color:#fff;cursor:pointer}
+#bar{position:fixed;left:0;bottom:0;height:4px;background:var(--accent,#0e6b72);z-index:60;transition:width .2s;background:#3fb7c0}
+#overview{display:none;position:fixed;inset:0;background:rgba(17,23,30,.96);z-index:80;overflow:auto;padding:30px 40px;color:#fff}
+#overview.on{display:block}
+#overview h4{margin:18px 0 8px;font-size:18px;color:#9fb3c8}
+#overview a{display:inline-block;margin:4px;padding:8px 12px;border-radius:8px;background:#26323f;color:#fff;font-size:15px;cursor:pointer;max-width:290px;vertical-align:top}
+#overview a:hover{background:#3b4c5f}
+#clock{position:fixed;left:12px;top:10px;z-index:60;background:#2b3745;color:#fff;border-radius:8px;padding:6px 12px;font-size:16px;font-variant-numeric:tabular-nums;display:none}
+body.showclock #clock{display:block}
+@media print{html,body{overflow:visible;height:auto}#stage{position:relative;transform:none!important}.slide{display:block!important;position:relative;height:720px;page-break-after:always}.step{opacity:1!important;transform:none!important}#nav,#bar,#clock{display:none}}
+
+.signs{position:relative;width:210px;margin:4px auto 0;display:flex;flex-direction:column;gap:6px;align-items:center}
+.sg{width:150px;height:89px;background-image:none;background-repeat:no-repeat;background-size:383px auto;border-radius:6px}
+.sg1{background-position:-16px -17px}
+.sg2{background-position:-205px -17px}
+.qbadge{position:absolute;right:-6px;top:-8px;width:40px;height:40px;border-radius:50%;background:#c43d2f;color:#fff;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.sign-body,.sign-q{opacity:0}
+.step.on .sg1{animation:signIn .8s cubic-bezier(.3,1.5,.5,1) .25s forwards}
+.step.on .sg2{animation:signIn .8s cubic-bezier(.3,1.5,.5,1) .85s forwards}
+.step.on .sign-q{animation:qIn .5s ease 1.6s forwards,qPulse 1.4s ease-in-out 2.2s infinite}
+@keyframes signIn{0%{opacity:0;transform:translateY(-90px) scale(.4) rotate(-20deg)}100%{opacity:1;transform:none}}
+@keyframes qIn{0%{opacity:0;transform:scale(0)}100%{opacity:1;transform:scale(1)}}
+@keyframes qPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+@media print{.sign-body,.sign-q{opacity:1!important;animation:none!important}}
+
+.su{--bg:#f4f2ec; --surface:#ffffff; --ink:#1b2631; --ink2:#3a4756; --muted:#66727f; --line:#d8d3c7; --soft:#ebe8df;
+  --teal:#0d6e64; --teal-bg:#dcefeb; --amber:#b25e12; --amber-bg:#f6e6d2;
+  --blue:#2c5c9a; --blue-bg:#dde8f5; --violet:#6a4a94; --violet-bg:#e8e0f3; --red:#b83a2e; --red-bg:#f6dcd8; --green:#2a7d4f; --green-bg:#dcefe3;
+  --p1:#2c5c9a; --p2:#0d7a68; --p3:#c07410; --p4:#76559c;
+  --navy:#132330;
+  --font:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic Medium","Yu Gothic","Noto Sans JP","Meiryo",system-ui,sans-serif;}
+.su h3{font-size:24px;font-weight:800;line-height:1.35}
+.su .lede{font-size:22px;color:var(--ink2);margin-top:10px;max-width:1080px}
+.su .body{position:absolute;left:64px;right:64px;top:148px;bottom:58px}
+.su .row{display:flex;gap:28px}
+.su .col{display:flex;flex-direction:column;gap:14px}
+.su .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.su .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.su .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.su .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 22px}
+.su .card h4{font-size:21px;font-weight:800;margin-bottom:6px}
+.su .card p,.su .card li{font-size:19px;line-height:1.55;color:var(--ink2)}
+.su .card ul{padding-left:1.1em}
+.su .tint-teal{background:var(--teal-bg);border-color:#b7d9d3}
+.su .tint-amber{background:var(--amber-bg);border-color:#ecd0ad}
+.su .tint-blue{background:var(--blue-bg);border-color:#bfd2ea}
+.su .tint-violet{background:var(--violet-bg);border-color:#d3c6e6}
+.su .tint-red{background:var(--red-bg);border-color:#ebc0ba}
+.su .tint-green{background:var(--green-bg);border-color:#bddcc8}
+.su .badge{display:inline-block;font-size:15px;font-weight:800;border-radius:6px;padding:1px 9px;color:#fff;background:var(--teal);letter-spacing:.03em;vertical-align:middle}
+.su .badge.a{background:var(--amber)}
+.su .badge.b{background:var(--blue)}
+.su .badge.v{background:var(--violet)}
+.su .badge.r{background:var(--red)}
+.su .badge.g{background:var(--green)}
+.su .callout{border-left:5px solid var(--teal);background:var(--surface);padding:12px 20px;border-radius:0 12px 12px 0;font-size:20px;color:var(--ink2)}
+.su .callout.amber{border-color:var(--amber)}
+.su .callout.blue{border-color:var(--blue)}
+.su .callout.violet{border-color:var(--violet)}
+.su .note{font-size:15.5px;color:var(--muted);line-height:1.5}
+.su .big{font-size:44px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.su .mono{font-variant-numeric:tabular-nums}
+.su strong{font-weight:800}
+.su .hl{background:linear-gradient(transparent 62%,#f5d98a 62%)}
+.su .eq{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:24px;background:var(--surface);border:1.5px solid var(--ink);border-radius:10px;padding:10px 18px;display:inline-block;letter-spacing:.02em}
+.su table.t{border-collapse:collapse;width:100%;font-size:18.5px}
+.su table.t th{background:var(--ink);color:#fff;text-align:left;font-weight:700;padding:8px 12px;font-size:17px}
+.su table.t td{padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface);vertical-align:top;line-height:1.45}
+.su table.t td:first-child{font-weight:800;white-space:nowrap}
+.su table.t tr:nth-child(even) td{background:#faf9f5}
+.su svg text{font-family:var(--font)}
+.su canvas{display:block}
+.su .btn{font:inherit;font-size:17px;font-weight:700;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:99px;padding:6px 18px;cursor:pointer;transition:background .15s,color .15s}
+.su .btn:hover{background:var(--soft)}
+.su .btn.on{background:var(--ink);color:#fff}
+.su .btn.teal.on{background:var(--teal);border-color:var(--teal)}
+.su .btn.amber.on{background:var(--amber);border-color:var(--amber)}
+.su .seg{display:inline-flex;border:1.5px solid var(--ink);border-radius:99px;overflow:hidden}
+.su .seg .btn{border:0;border-radius:0;padding:6px 16px}
+.su input[type=range]{width:100%;accent-color:var(--teal);height:26px}
+.su .chk{display:flex;gap:8px;align-items:center;font-size:17px;cursor:pointer;user-select:none}
+.su .chk input{width:18px;height:18px;accent-color:var(--teal)}
+.su .ro{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.su .ro .k{font-size:14.5px;color:var(--muted);font-weight:700}
+.su .ro .v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.25}
+.su .ph{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:18px}
+.su .ph i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.su .arr{display:flex;align-items:center;justify-content:center;color:#9aa5b0;font-size:20px}
+.su canvas.pose{aspect-ratio:220/250;height:auto}
+.su table.t.rowtall td{padding:9px 14px}
+.su table.t.rowtall th{padding:8px 14px}
+.slide.su{font-size:22px;line-height:1.55;padding:52px 64px 54px}
+.su h2.title{font-size:38px;line-height:1.28;font-weight:800;margin:8px 0 0}
+.su .body{position:absolute;left:64px;right:64px;top:148px;bottom:58px}
+.su .foot{position:absolute;left:64px;right:64px;bottom:18px;display:flex;justify-content:space-between;align-items:center;font-size:14.5px;color:var(--muted)}
+.su .foot .pg{display:none}
+.su .src{position:static;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:14.5px;color:var(--muted);line-height:1.4}
+.su .src em{font-style:normal;background:var(--soft);border:1px solid var(--line);padding:1px 8px;border-radius:99px;color:var(--ink2)}
+.su p{font-size:inherit;line-height:inherit}
+.su ul,.su ol{font-size:inherit}
+.su li{margin:0}
+.su .col{flex:none}
+.su .row{gap:28px}
+.su canvas.pose{aspect-ratio:220/250;height:auto}
+.su .btn{font:inherit;font-size:17px;border-width:1.5px;border-style:solid;border-color:var(--ink);padding:6px 18px;border-radius:99px;color:var(--ink);background:var(--surface)}
+.su .btn.on{background:var(--ink);color:#fff}
+.su .btn.teal.on{background:var(--teal);border-color:var(--teal)}.su .btn.amber.on{background:var(--amber);border-color:var(--amber)}
+.su .seg .btn{border:0;border-radius:0;padding:6px 16px}
+.su input[type=range]{width:100%;accent-color:var(--teal);height:26px}
+.su table.t th{background:var(--ink);color:#fff;padding:8px 12px;font-size:17px;border-bottom:0}
+.su table.t td{padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.su table.t td:first-child{font-weight:800;white-space:nowrap}
+</style></head><body>
+<div id="clock">経過 00:00</div>
+<div id="nav"><button id="nav-prev">◀</button><button id="nav-next">▶</button><button id="nav-ov">一覧</button><button id="nav-fs">全画面</button></div>
+<div id="bar"></div>
+<div id="overview"></div>
+<div id="stage">
+<section class="slide" data-sec="2" data-title="てこのモデル（操作）">
+  <div class="kicker">③ レバーアーム</div>
+  <h2>やってみよう：筋力は同じでも、腕が短いと破綻する</h2>
+  <div class="row" style="gap:18px">
+    <canvas id="cv-lever" data-demo="lever" data-w="700" data-h="420"></canvas>
+    <div class="col">
+      <div class="card" style="padding:14px 18px">
+        <div class="ctrl"><b>外転筋のレバーアーム d</b></div>
+        <div class="ctrl"><input type="range" id="lv-d" min="25" max="60" value="42" step="1"><span id="lv-d-v" style="font-weight:800;min-width:70px">42 mm</span></div>
+        <div class="ctrl" style="margin-top:10px"><b>外転筋の筋力（健常＝100%）</b></div>
+        <div class="ctrl"><input type="range" id="lv-s" min="50" max="130" value="100" step="1"><span id="lv-s-v" style="font-weight:800;min-width:70px">100 %</span></div>
+        <div class="ctrl" style="margin-top:12px;gap:6px">
+          <button class="btn" id="lv-h">健常 41.6</button><button class="btn" id="lv-dd">DDH 35.3</button><button class="btn" id="lv-dw">DDH＋筋力80%</button>
+        </div>
+      </div>
+      <p id="lv-out" style="margin-top:14px;font-size:22px;line-height:1.5"></p>
+      <p class="tiny" style="margin-top:6px">教育用の概念モデル。釣り合い F×d = W×D を仮定し、健常で必要張力が能力の約70%となるよう設定しています。d の基準値（41.6／35.3 mm）を含め、数値は教育用の計算例であり、正確な数値ではありません。</p>
+    </div>
+  </div>
+  <div class="src">数値は教育用の計算例であり、正確な数値ではありません</div>
+</section>
+
+<section class="slide su" data-sec="4" data-title="立ち上がりを動かして見る（Canvas）">
+  <div class="kicker">④ 立ち上がり動作</div>
+  <h2 class="title">立ち上がりを動かして見る</h2>
+  <div class="body" style="top:128px">
+    <div class="row" style="gap:22px">
+      <div style="width:790px">
+        <canvas data-demo="su_main" id="cvMain" width="790" height="424" style="width:790px;height:424px;background:#fff;border:1px solid var(--line);border-radius:14px"></canvas>
+        <div class="row" style="align-items:center;gap:14px;margin-top:10px">
+          <button class="btn on" id="mPlay" style="min-width:96px">■ 停止</button>
+          <input type="range" id="mScrub" min="0" max="1000" value="0" aria-label="動作の進行">
+        </div>
+      </div>
+      <div class="col" style="width:340px;gap:10px">
+        <div class="seg" id="mMode"><button class="btn teal on" data-m="fast">運動量戦略</button><button class="btn amber" data-m="slow">安定戦略</button></div>
+        <div class="ro" style="border-left:6px solid var(--p1)" id="mPhBox"><div class="k">Schenkman の相</div><div class="v" id="mPhase">Phase Ⅰ</div><div class="note" id="mPhSub">屈曲・運動量</div></div>
+        <div class="ro"><div class="k">バランスの状態</div><div class="v" id="mBal" style="font-size:21px">動的 レベル3</div><div class="note" id="mBalSub">座面の支持基底面内で重心を移動</div></div>
+        <div class="ro"><div class="k">重心の投影点</div><div class="v" id="mIn" style="font-size:21px">座面BOS内</div></div>
+        <div class="grid2" style="gap:8px">
+          <div class="ro" style="padding:6px 12px"><div class="k">体幹前傾</div><div class="v" id="aTr" style="font-size:20px">0°</div></div>
+          <div class="ro" style="padding:6px 12px"><div class="k">股関節屈曲</div><div class="v" id="aHip" style="font-size:20px">0°</div></div>
+          <div class="ro" style="padding:6px 12px"><div class="k">膝関節屈曲</div><div class="v" id="aKnee" style="font-size:20px">0°</div></div>
+          <div class="ro" style="padding:6px 12px"><div class="k">足関節背屈</div><div class="v" id="aAnk" style="font-size:20px">0°</div></div>
+        </div>
+        <div class="row" style="gap:16px"><label class="chk"><input type="checkbox" id="mTrail" checked>重心軌跡</label><label class="chk"><input type="checkbox" id="mBos" checked>支持基底面</label></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">数値は教育用の計算例であり、正確な数値ではありません</div><div class="pg"></div></div>
+</section>
+
+<section class="slide su" data-sec="4" data-title="バランスの力学：COG–COPモーメントアーム">
+  <div class="kicker">④ 立ち上がり動作</div>
+  <h2 class="title">バランスとは、重力と床反力の作用線の関係</h2>
+  <div class="body" style="top:136px">
+    <div class="row" style="gap:28px">
+      <div style="width:640px">
+        <canvas data-demo="su_bal" id="cvBal" width="640" height="372" style="width:640px;height:372px;background:#fff;border:1px solid var(--line);border-radius:14px"></canvas>
+        <div class="grid2" style="gap:18px;margin-top:8px">
+          <div><div class="note" style="font-weight:700;color:var(--ink)">身体の前方傾斜　<span id="balThV" class="mono">6°</span></div><input type="range" id="balTh" min="0" max="14" value="6"></div>
+          <div><div class="note" style="font-weight:700;color:var(--ink)">重心の高さ　<span id="balHV" class="mono">0.95 m</span></div><input type="range" id="balH" min="50" max="105" value="95"></div>
+        </div>
+        <label class="chk" style="margin-top:2px"><input type="checkbox" id="balFollow">圧中心（COP）を重心に追従させる（静止姿勢の調節）</label>
+      </div>
+      <div class="col" style="flex:1;gap:12px">
+        <div class="callout">バランス ＝ <strong>力学的な平衡状態</strong>。調整の過程は用語に含まない</div>
+        <div class="card"><p>重心（COG）の<strong>重力</strong>と圧中心（COP）の<strong>床反力</strong>の作用線が一致すれば安定。ずれると<strong>重力モーメント</strong>が生じる。</p>
+        <p style="margin-top:6px">その距離が <strong>COG–COP モーメントアーム</strong>。長いほどモーメントは大きい。</p></div>
+        <div class="card tint-blue"><p><strong>静止姿勢</strong>：COPが動いてアームを広げない<br><strong>歩行</strong>：アームを拡大し、位置エネルギーを運動エネルギーへ変換</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">数値は教育用の計算例であり、正確な数値ではありません</div><div class="pg"></div></div>
+</section>
+</div>
+<script>
+/* ================= core ================= */
+const FONT=getComputedStyle(document.body).fontFamily;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const stage=$('#stage'), slides=$$('.slide');
+const SECN=['導入','腋窩隙','レバーアーム','観察の精度','立ち上がり動作','まとめ'];
+let cur=0, shown=0;
+const demos={}; let running=[];
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);
+  stage.style.transform=`translate(${(innerWidth-1280*s)/2}px,${(innerHeight-720*s)/2}px) scale(${s})`;}
+addEventListener('resize',fit);
+function stepsOf(sl){return $$('.slide.active .step')}
+function applySteps(){const st=stepsOf();st.forEach((e,i)=>e.classList.toggle('on',i<shown));}
+function show(i,full){
+  i=Math.max(0,Math.min(slides.length-1,i));
+  running.forEach(r=>r.stop&&r.stop());running=[];
+  slides[cur].classList.remove('active');cur=i;slides[cur].classList.add('active');
+  const st=stepsOf();shown=full?st.length:0;applySteps();
+  $('#bar').style.width=((cur+1)/slides.length*100)+'%';
+  $('.pg',slides[cur])||0;
+  document.title=`立ち上がり動作の身体運動学とバランス｜操作できる3枚 — ${cur+1}/${slides.length}`;
+  history.replaceState(null,'','#'+(cur+1));
+  slides[cur].querySelectorAll('canvas[data-demo]').forEach(c=>{const d=demos[c.dataset.demo];if(d){const r=d(c);if(r)running.push(r)}});
+  const nt=slides[cur].querySelector('.notes');document.body.dataset.hasNotes=nt?1:0;
+}
+function next(){const st=stepsOf();if(shown<st.length){shown++;applySteps()}else show(cur+1)}
+function prev(){if(shown>0){shown--;applySteps()}else if(cur>0)show(cur-1,true)}
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  const k=e.key;
+  if(['ArrowRight','PageDown',' ','Enter'].includes(k)){e.preventDefault();next()}
+  else if(['ArrowLeft','PageUp','Backspace'].includes(k)){e.preventDefault();prev()}
+  else if(k==='Home')show(0);else if(k==='End')show(slides.length-1,true);
+  else if(k==='f'||k==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+  else if(k==='n'||k==='N')document.body.classList.toggle('shownotes');
+  else if(k==='o'||k==='O'||k==='Escape')$('#overview').classList.toggle('on',k!=='Escape'&&!$('#overview').classList.contains('on'));
+  else if(k==='t'||k==='T'){document.body.classList.toggle('showclock');}
+  else if(k==='r'||k==='R'){t0=Date.now()}
+});
+// page numbers, notes, source
+slides.forEach((s,i)=>{
+  const p=document.createElement('div');p.className='pg';p.textContent=`${i+1} / ${slides.length}`;s.appendChild(p);
+  const n=s.querySelector('.notes');if(n){s.appendChild(n)}
+});
+document.body.addEventListener('click',e=>{
+  if(e.target.closest('button,input,a,#overview,#nav,canvas'))return;
+  if(e.clientX>innerWidth*0.3)next();else prev();
+});
+$('#nav-prev').onclick=e=>{e.stopPropagation();prev()};$('#nav-next').onclick=e=>{e.stopPropagation();next()};
+$('#nav-ov').onclick=e=>{e.stopPropagation();$('#overview').classList.add('on')};
+$('#nav-fs').onclick=e=>{e.stopPropagation();document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};
+// overview
+(function(){const ov=$('#overview');let h='<div style="font-size:15px;color:#9fb3c8;margin-bottom:6px">クリックで移動　/　キー：→次 ←前 F全画面 N発表者メモ T時計 R時計リセット O一覧</div>';
+  let last=-1;slides.forEach((s,i)=>{const sec=+s.dataset.sec;if(sec!==last){h+=`<h4>${SECN[sec]}</h4>`;last=sec}
+    h+=`<a data-i="${i}">${i+1}. ${s.dataset.title||''}</a>`});
+  ov.innerHTML=h;ov.addEventListener('click',e=>{const a=e.target.closest('a');if(a){show(+a.dataset.i);ov.classList.remove('on')}else ov.classList.remove('on')});})();
+// clock
+let t0=Date.now();setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);const m=Math.floor(s/60);
+  $('#clock').textContent=`経過 ${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')} ／ 90:00`},500);
+
+/* ================= canvas helpers ================= */
+function setup(c){const w=+c.dataset.w,h=+c.dataset.h,r=2;c.width=w*r;c.height=h*r;c.style.width=w+'px';c.style.height=h+'px';
+  const x=c.getContext('2d');x.setTransform(r,0,0,r,0,0);x.W=w;x.H=h;return x}
+function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
+function panel(x){x.clearRect(0,0,x.W,x.H);x.fillStyle='#fff';rr(x,.5,.5,x.W-1,x.H-1,14);x.fill();x.strokeStyle='#d9d4c8';x.lineWidth=1;x.stroke()}
+function txt(x,s,a,b,o={}){x.font=`${o.w||600} ${o.s||16}px ${FONT}`;x.fillStyle=o.c||'#1c2733';x.textAlign=o.al||'left';x.textBaseline=o.bl||'alphabetic';x.fillText(s,a,b)}
+function line(x,a,b,c,d,col,w,dash){x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.strokeStyle=col;x.lineWidth=w||1;x.setLineDash(dash||[]);x.stroke();x.setLineDash([])}
+function arrow(x,a,b,c,d,col,w){line(x,a,b,c,d,col,w);const an=Math.atan2(d-b,c-a),h=10;x.beginPath();x.moveTo(c,d);x.lineTo(c-h*Math.cos(an-.45),d-h*Math.sin(an-.45));x.lineTo(c-h*Math.cos(an+.45),d-h*Math.sin(an+.45));x.closePath();x.fillStyle=col;x.fill()}
+const C={ink:'#1c2733',mute:'#5d6b7a',teal:'#0e6b72',red:'#c43d2f',green:'#1f8a5b',blue:'#2c5fa8',amber:'#d98e04',violet:'#6b4fa3',line:'#d9d4c8'};
+
+/* ================= 立ち上がりモデル ================= */
+/* ---- 立ち上がり簡易モデル（教育用の模式。実測ではない） ---- */
+const LEN={sh:.43,th:.43,tr:.52};
+const SEAT_Y=.51, HEEL=-.06, TOE=.20, SEAT_X0=-.55;
+function pchip(keys){
+  const n=keys.length,x=keys.map(k=>k[0]),y=keys.map(k=>k[1]),d=[],m=new Array(n);
+  for(let i=0;i<n-1;i++)d[i]=(y[i+1]-y[i])/(x[i+1]-x[i]);
+  m[0]=d[0];m[n-1]=d[n-2];
+  for(let i=1;i<n-1;i++){m[i]=(d[i-1]*d[i]<=0)?0:(d[i-1]+d[i])/2;}
+  for(let i=0;i<n-1;i++){ if(d[i]===0){m[i]=0;m[i+1]=0;continue}
+    const a=m[i]/d[i],b=m[i+1]/d[i],s=a*a+b*b; if(s>9){const t=3/Math.sqrt(s);m[i]=t*a*d[i];m[i+1]=t*b*d[i];}}
+  return t=>{ if(t<=x[0])return y[0]; if(t>=x[n-1])return y[n-1];
+    let i=0;while(t>x[i+1])i++; const h=x[i+1]-x[i],s=(t-x[i])/h,s2=s*s,s3=s2*s;
+    return (2*s3-3*s2+1)*y[i]+(s3-2*s2+s)*h*m[i]+(-2*s3+3*s2)*y[i+1]+(s3-s2)*h*m[i+1]; };
+}
+function gauss(a,sig){const r=Math.max(1,Math.ceil(sig*3)),w=[];let t=0;for(let k=-r;k<=r;k++){const v=Math.exp(-k*k/(2*sig*sig));w.push(v);t+=v}
+  return a.map((_,i)=>{let s=0,u=0;for(let k=-r;k<=r;k++){const q=a[Math.max(0,Math.min(a.length-1,i+k))];s+=q*w[k+r];u+=w[k+r]}return s/u})}
+function fk(thD,phKey,psD){
+  const r=Math.PI/180, ank={x:0,y:.08};
+  const knee={x:LEN.sh*Math.sin(thD*r), y:ank.y+LEN.sh*Math.cos(thD*r)};
+  const s=Math.max(-1,Math.min(1,(SEAT_Y-knee.y)/LEN.th));
+  const phSeat=Math.asin(s)/r, ph=Math.max(phKey,phSeat);
+  const hip={x:knee.x-LEN.th*Math.cos(ph*r), y:knee.y+LEN.th*Math.sin(ph*r)};
+  const sho={x:hip.x+LEN.tr*Math.sin(psD*r), y:hip.y+LEN.tr*Math.cos(psD*r)};
+  const head={x:sho.x+.13*Math.sin(psD*r), y:sho.y+.13*Math.cos(psD*r)};
+  const hat={x:hip.x+.62*(sho.x-hip.x), y:hip.y+.62*(sho.y-hip.y)};
+  const cog={x:.678*hat.x+.2*(knee.x+hip.x)/2+.1*(ank.x+knee.x)/2+.022*.03,
+             y:.678*hat.y+.2*(knee.y+hip.y)/2+.1*(ank.y+knee.y)/2+.022*.03};
+  return {ank,knee,hip,sho,head,cog,ph,phSeat,lifted:(phKey-phSeat)>3,th:thD,ps:psD};
+}
+const STRAT={
+  fast:{name:'運動量戦略',dur:1.4,
+    th:[[0,0],[.28,8],[.5,19],[.75,6],[.9,0],[1,0]],
+    ph:[[0,0],[.34,2.5],[.48,30],[.7,78],[.88,90],[1,90]],
+    ps:[[0,0],[.12,22],[.32,40],[.5,36],[.75,10],[.9,0],[1,0]]},
+  slow:{name:'安定戦略',dur:4.5,
+    th:[[0,0],[.3,13],[.5,19],[.65,23],[.85,6],[.97,0],[1,0]],
+    ph:[[0,0],[.48,3],[.6,26],[.8,70],[.93,90],[1,90]],
+    ps:[[0,0],[.25,50],[.45,60],[.62,45],[.85,12],[.95,0],[1,0]]}
+};
+const NS=400;
+function buildModel(key){
+  const S=STRAT[key], th=pchip(S.th), ph=pchip(S.ph), ps=pchip(S.ps);
+  const f=[];for(let i=0;i<=NS;i++){const t=i/NS;f.push(fk(th(t),ph(t),ps(t)));}
+  let lift=f.findIndex(p=>p.lifted); if(lift<0)lift=NS;
+  let maxDF=0;for(let i=0;i<=NS;i++)if(f[i].th>f[maxDF].th)maxDF=i;
+  let ext=f.findIndex((p,i)=>i>maxDF&&p.ph>=89.5); if(ext<0)ext=NS;
+  const dt0=S.dur/NS; let cx=gauss(f.map(p=>p.cog.x),0.07/dt0);
+  const dt=S.dur/NS, cop=[],arm=[];
+  for(let i=0;i<=NS;i++){
+    const k=8, a=(i-k>=0&&i+k<=NS)?(cx[i+k]-2*cx[i]+cx[i-k])/(k*k*dt*dt):0;
+    const raw=f[i].cog.x-(f[i].cog.y/9.8)*a;
+    const seatC=Math.max(SEAT_X0,Math.min(TOE,raw)), footC=Math.max(HEEL,Math.min(TOE,raw));
+    let w=Math.max(0,Math.min(1,(i-(lift-6))/12)); w=w*w*(3-2*w);
+    const c=seatC*(1-w)+footC*w; cop.push(c); arm.push(f[i].cog.x-c);
+  }
+  const armS=gauss(arm,0.05/dt0);for(let i=0;i<=NS;i++)arm[i]=armS[i];
+  return {S,f,lift,maxDF,ext,cop,arm};
+}
+const MODELS={};function M(k){return MODELS[k]||(MODELS[k]=buildModel(k))}
+
+function drawChair(x,P){ // P: world->px
+  const a=P(-.62,.44),b=P(-.28,.44);
+  x.fillStyle='#b9ae96';rr(x,a[0],a[1],b[0]-a[0],7,3);x.fill();
+  const c=P(-.62,.44),d=P(-.62,1.0);line(x,c[0],c[1],d[0],d[1],'#b9ae96',7);
+  const l1=P(-.55,.44),l2=P(-.55,0),l3=P(-.31,.44),l4=P(-.31,0);line(x,l1[0],l1[1],l2[0],l2[1],'#b9ae96',5);line(x,l3[0],l3[1],l4[0],l4[1],'#b9ae96',5);
+}
+function drawBody(x,p,P,col,alpha){
+  const g=(o)=>P(o.x,o.y), A=g(p.ank),K=g(p.knee),H=g(p.hip),S=g(p.sho),Hd=g(p.head);
+  const toe=P(.2,0),heel=P(-.06,0);
+  x.save();x.globalAlpha=alpha||1;x.lineCap='round';x.lineJoin='round';
+  // foot
+  line(x,heel[0],heel[1]-4,toe[0],toe[1]-4,col,9);
+  line(x,A[0],A[1],A[0],heel[1]-4,col,9);
+  // limbs
+  line(x,A[0],A[1],K[0],K[1],col,16);line(x,K[0],K[1],H[0],H[1],col,18);line(x,H[0],H[1],S[0],S[1],col,24);
+  // arm (forward)
+  const sc=P(1,0)[0]-P(0,0)[0];
+  const armAng=1.15; // rad from vertical, forward
+  line(x,S[0],S[1],S[0]+sc*.34*Math.sin(armAng),S[1]+sc*.34*Math.cos(armAng),col,9);
+  x.beginPath();x.arc(Hd[0],Hd[1],.085*sc,0,7);x.fillStyle=col;x.fill();
+  [A,K,H,S].forEach(j=>{x.beginPath();x.arc(j[0],j[1],5,0,7);x.fillStyle='#fff';x.fill();x.lineWidth=2;x.strokeStyle=C.ink;x.stroke()});
+  x.restore();
+}
+const PH_COL=['#bfe0e3','#8ec8cd','#5eb0b7','#2d8e96'];
+const PH_NAME=['I 屈曲','II 運動量移行','III 伸展','IV 安定化'];
+const PH_LV=['Lv3','Lv3→4','Lv4','Lv1–2'];
+function phaseOf(m,i){return i<m.lift?0:i<m.maxDF?1:i<m.ext?2:3}
+
+/* ---- poses (static) ---- */
+demos.poses=function(c){const x=setup(c);panel(x);
+  const m=M('fast');const idx=[0,m.lift,m.maxDF,m.ext];
+  const xs=[110,390,670,950];
+  const sc=104; // px per m
+  // phase bars
+  const bars=[[xs[0],xs[1]],[xs[1],xs[2]],[xs[2],xs[3]],[xs[3],1130]];
+  bars.forEach((b,i)=>{x.fillStyle=PH_COL[i];rr(x,b[0]+6,10,b[1]-b[0]-12,50,8);x.fill();
+    txt(x,PH_NAME[i],(b[0]+b[1])/2,32,{al:'center',w:800,s:18,c:i>1?'#06383c':'#0b4f54'});
+    txt(x,'Lv '+PH_LV[i].replace('Lv','')+(i<3?'（動的）':'（静的）'),(b[0]+b[1])/2,52,{al:'center',w:700,s:15,c:'#1c2733'});});
+  const gy=238;
+  line(x,20,gy,1120,gy,C.ink,2);
+  idx.forEach((ii,k)=>{const p=m.f[ii];const P=(wx,wy)=>[xs[k]+wx*sc,gy-wy*sc];
+    // pose offset: place so ankle at xs[k]+? 
+    if(k===0)drawChair(x,P);
+    drawBody(x,p,P,'#47566a',1);
+    // COG & projection
+    const cg=P(p.cog.x,p.cog.y);x.beginPath();x.arc(cg[0],cg[1],7,0,7);x.fillStyle=C.red;x.fill();
+    line(x,cg[0],cg[1],cg[0],gy,C.red,1.5,[4,4]);
+    // BOS
+    const b0=(k===0)?P(-.55,0):P(-.06,0), b1=P(.2,0);x.fillStyle=C.teal;x.fillRect(b0[0],gy,b1[0]-b0[0],5);
+    txt(x,['座位開始','離殿','足関節最大背屈','股関節伸展終了'][k],xs[k]+10,gy+20,{al:'center',s:14,c:C.mute,w:700});
+  });
+  return {stop(){}};
+};
+
+/* ---- STS simulator ---- */
+demos.sts=function(c){
+  const x=setup(c);let key='fast',t=0,playing=false,last=0,raf=0;
+  const btnF=$('#sts-fast'),btnS=$('#sts-slow'),btnP=$('#sts-play'),sl=$('#sts-t'),info=$('#sts-info');
+  const sc=225, ox=450, gy=395, P=(wx,wy)=>[ox+wx*sc,gy-wy*sc];
+  const trail=[];
+  function setKey(k){key=k;btnF.classList.toggle('on',k==='fast');btnS.classList.toggle('on',k==='slow');t=0;playing=false;btnP.textContent='▶ 再生';sl.value=0;draw()}
+  function draw(){
+    const m=M(key),i=Math.round(t*NS),p=m.f[i];
+    panel(x);
+    line(x,20,gy,570,gy,C.ink,2.5);
+    drawChair(x,P);
+    // BOS
+    const lifted=i>=m.lift;
+    const s0=P(SEAT_X0,0),s1=P(TOE,0),f0=P(HEEL,0);
+    if(!lifted){x.fillStyle='rgba(14,107,114,.18)';x.fillRect(s0[0],gy+3,s1[0]-s0[0],12)}
+    x.fillStyle=C.teal;x.fillRect(f0[0],gy+3,s1[0]-f0[0],12);
+    txt(x,lifted?'支持基底面：足部のみ':'支持基底面：殿部＋足部',(f0[0]+s1[0])/2,gy+34,{al:'center',s:14,c:C.teal,w:700});
+    // trail
+    x.beginPath();for(let j=0;j<=i;j+=2){const q=P(m.f[j].cog.x,m.f[j].cog.y);j?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])}
+    x.strokeStyle='rgba(196,61,47,.55)';x.lineWidth=3;x.setLineDash([2,5]);x.stroke();x.setLineDash([]);
+    drawBody(x,p,P,'#47566a',1);
+    const cg=P(p.cog.x,p.cog.y);
+    x.beginPath();x.arc(cg[0],cg[1],9,0,7);x.fillStyle=C.red;x.fill();x.lineWidth=2;x.strokeStyle='#fff';x.stroke();
+    line(x,cg[0],cg[1],cg[0],gy,C.red,2,[5,4]);
+    const cp=P(m.cop[i],0);
+    x.beginPath();x.moveTo(cp[0],gy-2);x.lineTo(cp[0]-8,gy-17);x.lineTo(cp[0]+8,gy-17);x.fillStyle=C.blue;x.fill();
+    // arm bar
+    const ay=gy-34;line(x,cg[0],ay,cp[0],ay,C.amber,5);
+    txt(x,'COG',cg[0],gy-52,{al:'center',s:14,c:C.red,w:800});txt(x,'COP',cp[0],gy-52,{al:'center',s:14,c:C.blue,w:800});
+    // phase chip
+    const ph=phaseOf(m,i);x.fillStyle=PH_COL[ph];rr(x,16,14,420,40,9);x.fill();
+    txt(x,'Phase '+PH_NAME[ph]+'　｜　バランス '+PH_LV[ph],30,40,{w:800,s:18,c:'#06383c'});
+    // mini graph
+    const gx=592,gw=170,gt=110,gh=150;
+    txt(x,'|COG−COP| の推移（cm）',gx,gt-22,{s:14,w:700,c:C.mute});
+    x.fillStyle='#faf8f3';x.fillRect(gx,gt,gw,gh);
+    const ys=v=>gt+gh-v*gh/30;
+    // phase bands
+    [[0,m.lift,0],[m.lift,m.maxDF,1],[m.maxDF,m.ext,2],[m.ext,NS,3]].forEach(b=>{x.fillStyle=PH_COL[b[2]];x.globalAlpha=.55;x.fillRect(gx+b[0]/NS*gw,gt+gh,(b[1]-b[0])/NS*gw,9);x.globalAlpha=1});
+    x.beginPath();m.arm.forEach((v,j)=>{const px=gx+j/NS*gw,py=ys(Math.min(30,Math.abs(v)*100));j?x.lineTo(px,py):x.moveTo(px,py)});x.strokeStyle=C.amber;x.lineWidth=3;x.stroke();
+    line(x,gx,gt+gh,gx+gw,gt+gh,C.ink,1.5);line(x,gx,gt,gx,gt+gh,C.ink,1.5);
+    [0,10,20,30].forEach(v=>{txt(x,v,gx-6,ys(v)+4,{al:'right',s:12,c:C.mute})});
+    const cx=gx+t*gw;line(x,cx,gt,cx,gt+gh,C.ink,1.5,[3,3]);
+    txt(x,'時間 →',gx+gw,gt+gh+28,{al:'right',s:12,c:C.mute});
+    txt(x,'所要 '+m.S.dur.toFixed(1)+' 秒（模式）',gx,gt+gh+48,{s:13,c:C.mute});
+    // info
+    const arm=Math.abs(m.arm[i])*100;
+    const lf=m.f[m.lift].cog.x>=HEEL;
+    info.innerHTML=`<b>${m.S.name}</b>｜離殿時のCOG：<b>${lf?'足部の基底面内':'基底面の後方'}</b><br>現在の COG–COP 距離：<b>${arm.toFixed(0)} cm</b>`;
+  }
+  function loop(ts){if(!playing)return;const dt=(ts-last)/1000;last=ts;t+=dt/M(key).S.dur;if(t>=1){t=1;playing=false;btnP.textContent='↺ もう一度'}sl.value=Math.round(t*1000);draw();if(playing)raf=requestAnimationFrame(loop)}
+  btnF.onclick=()=>setKey('fast');btnS.onclick=()=>setKey('slow');
+  btnP.onclick=()=>{if(t>=1)t=0;playing=!playing;btnP.textContent=playing?'❚❚ 停止':'▶ 再生';if(playing){last=performance.now();raf=requestAnimationFrame(loop)}};
+  sl.oninput=()=>{playing=false;btnP.textContent='▶ 再生';t=sl.value/1000;draw()};
+  setKey('fast');
+  return {stop(){playing=false;cancelAnimationFrame(raf)}};
+};
+
+/* ================= lever ================= */
+demos.lever=function(c){
+  const x=setup(c);const dS=$('#lv-d'),sS=$('#lv-s'),dV=$('#lv-d-v'),sV=$('#lv-s-v'),out=$('#lv-out');
+  dS.step='0.1';dS.value=41.6;let ang=0,raf=0,alive=true;
+  $('#lv-h').onclick=()=>{dS.value=41.6;sS.value=100;upd()};$('#lv-dd').onclick=()=>{dS.value=35.3;sS.value=100;upd()};$('#lv-dw').onclick=()=>{dS.value=35.3;sS.value=80;upd()};
+  let tgt=0;
+  function upd(){const d=+dS.value,s=+sS.value;dV.textContent=d.toFixed(1)+' mm';sV.textContent=s+' %';
+    const req=0.7*(41.6/d), cap=s/100, ratio=req/cap;tgt=ratio>1?Math.min(14,(ratio-1)*45+2):0;
+    const col=ratio>1?'#c43d2f':'#1f8a5b';
+    out.innerHTML=`必要な筋張力 ／ 筋の能力 ＝ <b style="color:${col}">${(ratio*100).toFixed(0)}%</b><br>`+(ratio>1?`<b style="color:#c43d2f">能力を超える → 骨盤が遊脚側へ落ちる（トレンデレンブルグ）</b>`:`<b style="color:#1f8a5b">骨盤を水平に保てる（余力 ${((1-ratio)*100).toFixed(0)}%）</b>`);
+  }
+  function draw(){
+    panel(x);const d=+dS.value,s=+sS.value;
+    const cx=360,hy=262;const a=ang*Math.PI/180; // positive: swing side(left) down
+    // stance leg
+    line(x,cx,hy,cx,380,'#8a97a6',22);x.beginPath();x.arc(cx,hy,16,0,7);x.fillStyle='#efe6cf';x.fill();x.strokeStyle=C.ink;x.lineWidth=3;x.stroke();
+    line(x,cx-60,382,cx+60,382,C.ink,3);
+    txt(x,'支持脚の股関節（支点）',cx+24,hy+36,{s:14,c:C.mute,w:700});
+    // pelvis bar rotated around hip
+    x.save();x.translate(cx,hy);x.rotate(-a);
+    x.fillStyle='#e8e1d2';rr(x,-250,-32,500,26,10);x.fill();x.strokeStyle='#b9ae96';x.lineWidth=2;x.stroke();
+    // swing-side load (left) at D=190px
+    const D=190,dp=d*3.4;
+    arrow(x,-D,-34-84,-D,-40,C.ink,6);
+    txt(x,'体重（遊脚・体幹）',-D,-132,{al:'center',s:15,w:700});
+    txt(x,'D',-D/2,18,{al:'center',s:17,w:800,c:C.mute});
+    line(x,-D,10,0,10,C.mute,2);
+    // muscle (right) at d
+    const req=0.7*(41.6/d),cap=s/100,ratio=req/cap;
+    arrow(x,dp,-100,dp,-34,C.red,6);
+    x.restore();
+    txt(x,'外転筋の張力 F',cx+dp+14,hy-70,{s:15,w:700,c:C.red});
+    // d bracket
+    line(x,cx,hy+58,cx+dp,hy+58,C.red,2.5);line(x,cx,hy+52,cx,hy+64,C.red,2.5);line(x,cx+dp,hy+52,cx+dp,hy+64,C.red,2.5);
+    txt(x,'d = '+d.toFixed(1)+' mm',cx+dp/2,hy+82,{al:'center',s:17,w:800,c:C.red});
+    // gauge
+    const gx=40,gy=40,gw=250;txt(x,'必要な筋張力（能力＝100%）',gx,gy-8,{s:14,w:700,c:C.mute});
+    x.fillStyle='#eee9de';rr(x,gx,gy,gw,18,9);x.fill();
+    const w=Math.min(1.6,ratio)/1.6*gw;x.fillStyle=ratio>1?C.red:C.green;rr(x,gx,gy,Math.max(10,w),18,9);x.fill();
+    const mk=gx+gw/1.6;line(x,mk,gy-5,mk,gy+23,C.ink,2);txt(x,'100%',mk,gy+40,{al:'center',s:13,c:C.ink,w:700});
+    txt(x,(ratio*100).toFixed(0)+'%',gx+gw+8,gy+14,{s:16,w:800,c:ratio>1?C.red:C.green});
+    txt(x,'概念モデル：F×d = W×D',20,x.H-16,{s:13,c:C.mute});
+  }
+  function loop(){if(!alive)return;ang+=(tgt-ang)*0.12;draw();raf=requestAnimationFrame(loop)}
+  dS.oninput=sS.oninput=upd;upd();loop();
+  return {stop(){alive=false;cancelAnimationFrame(raf)}};
+};
+
+/* ================= DDH chart ================= */
+function groupedBars(x,o){ // o:{x,y,w,h,cats:[{label,v:[a,b]}],max,unit,title,cols,legend}
+  const {x:gx,y:gy,w,h,cats,max,title,cols,fmt}=o;
+  txt(x,title,gx,gy-14,{s:15,w:800});
+  line(x,gx,gy+h,gx+w,gy+h,C.ink,1.5);
+  for(let v=0;v<=max;v+=o.step){const yy=gy+h-v/max*h;line(x,gx,yy,gx+w,yy,'#eee9de',1);txt(x,v,gx-6,yy+4,{al:'right',s:12,c:C.mute})}
+  const cw=w/cats.length;
+  cats.forEach((c,i)=>{const bw=cw*.32;c.v.forEach((v,j)=>{const bx=gx+i*cw+cw/2+(j-1)*bw-(j===0?0:0)+(j===0?-0:0)-(j===0?0:0);
+      const px=gx+i*cw+cw/2-bw+(j*bw)+ (j?2:-2);
+      const bh=v/max*h;x.fillStyle=cols[j];x.fillRect(px,gy+h-bh,bw-2,bh);
+      txt(x,fmt?fmt(v):v,px+bw/2-1,gy+h-bh-6,{al:'center',s:14,w:800,c:cols[j]});});
+    txt(x,c.label,gx+i*cw+cw/2,gy+h+22,{al:'center',s:13,c:C.ink,w:600});});
+}
+demos.ddh=function(c){const x=setup(c);panel(x);
+  const cols=[C.green,C.red];
+  groupedBars(x,{x:60,y:70,w:290,h:240,max:60,step:10,title:'前部中殿筋の外転モーメントアーム（mm）',cols,
+    cats:[{label:'立脚初期',v:[41.6,35.3]},{label:'立脚後期',v:[52.6,45.4]}],fmt:v=>v.toFixed(1)});
+  groupedBars(x,{x:410,y:70,w:290,h:240,max:6,step:1,title:'股関節反力（体重比）',cols,
+    cats:[{label:'初期・内側成分',v:[.87,1.26]},{label:'後期・合力',v:[4.97,5.71]}],fmt:v=>v.toFixed(2)});
+  x.fillStyle=C.green;x.fillRect(60,362,16,16);txt(x,'健常（N=15）',84,375,{s:15,w:700});
+  x.fillStyle=C.red;x.fillRect(220,362,16,16);txt(x,'未治療DDH（N=15）',244,375,{s:15,w:700});
+  txt(x,'腕が短い（−6〜7 mm）→ 同じ運動に高い筋力・高い関節反力',60,404,{s:15,w:700,c:C.mute});
+  return {stop(){}};
+};
+
+/* ================= accuracy charts ================= */
+demos.acc1=function(c){const x=setup(c);panel(x);
+  const gx=250,gw=440,gy=60;
+  const X=v=>gx+v*gw;
+  txt(x,'ICC・相関係数（0 – 1）',gx,34,{s:15,w:800});
+  for(let v=0;v<=1.001;v+=.2){line(x,X(v),gy-8,X(v),330,'#eee9de',1);txt(x,v.toFixed(1),X(v),350,{al:'center',s:12,c:C.mute})}
+  const rows=[
+    {l:'検者内信頼性（動画）',a:.6,b:null,col:C.teal,note:'多くの指標で 0.6 超'},
+    {l:'検者間信頼性',a:.04,b:.59,col:C.red,note:'0.04 – 0.59'},
+    {l:'妥当性（動画）vs 基準',a:.06,b:.62,col:C.amber,note:'0.06 – 0.62'},
+    {l:'妥当性（静止画）vs 基準',a:.08,b:.68,col:C.blue,note:'0.08 – 0.68'}];
+  rows.forEach((r,i)=>{const y=gy+10+i*62;txt(x,r.l,gx-12,y+22,{al:'right',s:15,w:700});
+    if(r.b===null){const g=x.createLinearGradient(X(r.a),0,X(1),0);g.addColorStop(0,r.col);g.addColorStop(1,'rgba(14,107,114,.25)');x.fillStyle=g;rr(x,X(r.a),y,X(1)-X(r.a),30,6);x.fill();txt(x,r.note,X(r.a)+8,y+21,{s:14,w:800,c:'#fff'})}
+    else{x.fillStyle=r.col;rr(x,X(r.a),y,X(r.b)-X(r.a),30,6);x.fill();txt(x,r.note,X(r.b)+8,y+21,{s:14,w:800,c:r.col})}});
+  line(x,X(.75),gy-8,X(.75),322,C.green,2.5,[7,5]);txt(x,'ICC 0.75（良好）',X(.75)+5,gy-14,{al:'left',s:13,w:800,c:C.green});
+  line(x,X(.7),gy-8,X(.7),322,C.blue,2.5,[2,5]);txt(x,'r 0.7（妥当性）',X(.7)-5,gy-14,{al:'right',s:13,w:800,c:C.blue});
+  txt(x,'どの指標も基準線（緑・青）に届かない',x.W-20,x.H-14,{al:'right',s:14,w:700,c:C.mute});
+  return {stop(){}};
+};
+demos.acc2=function(c){const x=setup(c);panel(x);
+  const cats=['初期接地','立脚終期','前遊脚期'];
+  const data={video:[[.45,.61],[.24,.43],[.30,.31]],still:[[.50,.52],[.49,.45],[.52,.49]]};
+  const gx=60,gy=60,gw=640,gh=260;
+  txt(x,'足関節：基準値との相関係数 r',gx,34,{s:15,w:800});
+  for(let v=0;v<=.8;v+=.2){const yy=gy+gh-v/.8*gh;line(x,gx,yy,gx+gw,yy,'#eee9de',1);txt(x,v.toFixed(1),gx-6,yy+4,{al:'right',s:12,c:C.mute})}
+  line(x,gx,gy+gh,gx+gw,gy+gh,C.ink,1.5);
+  const yy7=gy+gh-.7/.8*gh;line(x,gx,yy7,gx+gw,yy7,C.blue,2,[2,5]);txt(x,'r 0.7',gx+gw,yy7-6,{al:'right',s:13,w:800,c:C.blue});
+  const cw=gw/3,bw=34,cols=[['#f0c46a','#d98e04'],['#9db9e0','#2c5fa8']];
+  cats.forEach((cn,i)=>{[['video',0],['still',1]].forEach(([k,ki])=>{data[k][i].forEach((v,gi)=>{
+      const px=gx+i*cw+28+(ki*2+gi)*(bw+6),bh=v/.8*gh;x.fillStyle=cols[ki][gi];x.fillRect(px,gy+gh-bh,bw,bh);
+      txt(x,v.toFixed(2),px+bw/2,gy+gh-bh-6,{al:'center',s:13,w:800,c:cols[ki][1]})})});
+    txt(x,cn,gx+i*cw+cw/2,gy+gh+24,{al:'center',s:15,w:700})});
+  const lg=[['動画 <10年',cols[0][0]],['動画 ≥10年',cols[0][1]],['静止画 <10年',cols[1][0]],['静止画 ≥10年',cols[1][1]]];
+  lg.forEach((l,i)=>{const px=gx+i*160;x.fillStyle=l[1];x.fillRect(px,x.H-34,16,16);txt(x,l[0],px+22,x.H-21,{s:14,w:700})});
+  return {stop(){}};
+};
+
+/* ================= reach (Ikeda 2023 Table 1) ================= */
+demos.reach=function(c){const x=setup(c);panel(x);
+  const gx=70,gy=88,gw=640,gh=250;
+  const ser=[['最長筋 Th11',[1,.695,1.518,2.024,2.766,3.768],'#c43d2f'],['最長筋 L2',[1,.480,1.321,2.119,2.945,4.070],'#d98e04'],['多裂筋',[1,.491,1.106,1.853,3.006,3.788],'#2c5fa8'],['腸肋筋',[1,.682,1.210,1.835,2.327,3.022],'#1f8a5b']];
+  const X=i=>gx+i/5*gw,Y=v=>gy+gh-v/4.5*gh;
+  txt(x,'線：筋電図（RMS相対値）',gx,22,{s:14,w:800});
+  ser.forEach(([n,v,col],k)=>{x.fillStyle=col;x.fillRect(gx+k*165,32,12,12);txt(x,n,gx+k*165+18,43,{s:13,w:700})});
+  txt(x,'帯：動作の区分（論文の考察。角度変化に基づく）',gx,66,{s:13,w:700,c:C.mute});
+  x.fillStyle='#fdf3dc';x.fillRect(X(0),gy,X(1)-X(0),gh);x.fillStyle='#efeaf7';x.fillRect(X(1),gy,X(2)-X(1),gh);x.fillStyle='#e1f1f2';x.fillRect(X(2),gy,X(5)-X(2),gh);
+  txt(x,'骨盤後傾',(X(0)+X(1))/2,gy+20,{al:'center',s:14,w:800,c:'#8a5a00'});txt(x,'（APAの可能性）',(X(0)+X(1))/2,gy+38,{al:'center',s:13,w:700,c:'#8a5a00'});
+  txt(x,'初期動作',(X(1)+X(2))/2,gy+20,{al:'center',s:14,w:800,c:C.violet});txt(x,'Th10屈曲',(X(1)+X(2))/2,gy+38,{al:'center',s:13,w:700,c:C.violet});
+  txt(x,'リーチ延長（股関節屈曲）',(X(2)+X(5))/2,gy+20,{al:'center',s:14,w:800,c:C.teal});
+  for(let v=0;v<=4;v++){const yy=Y(v);line(x,gx,yy,gx+gw,yy,'rgba(0,0,0,.07)',1);txt(x,v,gx-8,yy+4,{al:'right',s:12,c:C.mute})}
+  line(x,gx,Y(1),gx+gw,Y(1),C.mute,1.5,[5,4]);txt(x,'端座位姿勢 = 1',gx+gw-4,Y(1)-6,{al:'right',s:12,c:C.mute});
+  line(x,gx,gy+gh,gx+gw,gy+gh,C.ink,1.5);line(x,gx,gy,gx,gy+gh,C.ink,1.5);
+  ['0','20','40','60','80','100'].forEach((l,i)=>txt(x,l+'%',X(i),gy+gh+20,{al:'center',s:13,c:C.mute}));
+  txt(x,'動作時間（座圧中心移動開始〜リーチ終了＝100%）',gx+gw/2,gy+gh+40,{al:'center',s:13,c:C.mute});
+  ser.forEach(([n,v,col])=>{x.beginPath();v.forEach((y,i)=>i?x.lineTo(X(i),Y(y)):x.moveTo(X(i),Y(y)));x.strokeStyle=col;x.lineWidth=3;x.stroke();
+    v.forEach((y,i)=>{x.beginPath();x.arc(X(i),Y(y),4,0,7);x.fillStyle=col;x.fill()});});
+  txt(x,'有意差（原著の結果より）：4筋とも、20%に比べ 60・80・100% で有意に増加',gx-48,gy+gh+64,{s:12.5,w:700,c:C.ink});
+  txt(x,'　　40%に比べ 100% でも有意に増加（80% は Th11・多裂筋のみ）',gx-48,gy+gh+82,{s:12.5,w:700,c:C.ink});
+  txt(x,'※折れ線は各時点の平均値を直線で結んだもの（時点間は補間）。ばらつき（SD）は原著Table 1に記載なし',gx-48,gy+gh+104,{s:12.5,w:600,c:C.mute});
+  return {stop(){}};
+};
+
+/* ================= Teragaki ================= */
+demos.ter=function(c){const x=setup(c);panel(x);
+  txt(x,'検査を実施できた人数（脳血管障害 N=22）',24,34,{s:15,w:800});
+  const gx=80,gy=70,gw=380,gh=230,Y=v=>gy+gh-v/24*gh;
+  for(let v=0;v<=24;v+=6){line(x,gx,Y(v),gx+gw,Y(v),'#eee9de',1);txt(x,v,gx-8,Y(v)+4,{al:'right',s:12,c:C.mute})}
+  line(x,gx,gy+gh,gx+gw,gy+gh,C.ink,1.5);
+  x.fillStyle=C.teal;x.fillRect(gx+50,Y(22),120,gy+gh-Y(22));txt(x,'22',gx+110,Y(22)-8,{al:'center',s:20,w:800,c:C.teal});
+  x.fillStyle=C.amber;x.fillRect(gx+230,Y(13),120,gy+gh-Y(13));txt(x,'13',gx+290,Y(13)-8,{al:'center',s:20,w:800,c:C.amber});
+  x.fillStyle='rgba(196,61,47,.15)';x.fillRect(gx+230,Y(22),120,Y(13)-Y(22));x.strokeStyle=C.red;x.setLineDash([5,4]);x.strokeRect(gx+230,Y(22),120,Y(13)-Y(22));x.setLineDash([]);
+  txt(x,'立位困難',gx+290,Y(18)-2,{al:'center',s:14,w:800,c:C.red});txt(x,'9名',gx+290,Y(18)+16,{al:'center',s:16,w:800,c:C.red});
+  txt(x,'座位前方リーチ',gx+110,gy+gh+26,{al:'center',s:14,w:700});txt(x,'立位FRT',gx+290,gy+gh+26,{al:'center',s:14,w:700});
+  txt(x,'平均到達距離：足底接地 30.1 cm／非接地 22.8 cm',24,x.H-14,{s:13,c:C.mute});
+  return {stop(){}};
+};
+
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const SCALE=()=>Math.min(innerWidth/1280,innerHeight/720);
+function cfit(c){
+  if(!c._lw){c._lw=c.width;c._lh=c.height;}
+  const cw=c.offsetWidth||c._lw;
+  const r=Math.min(3,(window.devicePixelRatio||1)*SCALE())*(cw/c._lw);
+  const W=Math.max(1,Math.round(c._lw*r)),H=Math.max(1,Math.round(c._lh*r));
+  if(c.width!==W||c.height!==H){c.width=W;c.height=H;}
+  const ctx=c.getContext('2d');ctx.setTransform(W/c._lw,0,0,H/c._lh,0,0);
+  return ctx;
+}
+/* ---------- body model ---------- */
+const L={s:.43,t:.43,h:.50}, HEEL=-.07, TOE=.20;
+function mono(xs,ys){
+  const n=xs.length,d=[];for(let i=0;i<n-1;i++)d.push((ys[i+1]-ys[i])/(xs[i+1]-xs[i]));
+  const m=[d[0]];for(let i=1;i<n-1;i++)m.push(d[i-1]*d[i]<=0?0:(d[i-1]+d[i])/2);m.push(d[n-2]);
+  for(let i=0;i<n-1;i++){if(d[i]===0){m[i]=m[i+1]=0;continue;}const a=m[i]/d[i],b=m[i+1]/d[i],s=a*a+b*b;if(s>9){const t=3/Math.sqrt(s);m[i]=t*a*d[i];m[i+1]=t*b*d[i];}}
+  return x=>{if(x<=xs[0])return ys[0];if(x>=xs[n-1])return ys[n-1];let i=0;while(xs[i+1]<x)i++;const h=xs[i+1]-xs[i],t=(x-xs[i])/h;
+    return (2*t**3-3*t**2+1)*ys[i]+(t**3-2*t**2+t)*h*m[i]+(-2*t**3+3*t**2)*ys[i+1]+(t**3-t**2)*h*m[i+1];};
+}
+const rad=Math.PI/180;
+const seatPhi=ths=>Math.acos(Math.min(1,L.s*(1-Math.cos(ths*rad))/L.t))/rad;
+function mkMode(cfg){
+  const ft=mono(cfg.ts,cfg.trunk),fs=mono(cfg.ts,cfg.shank);
+  const k0=seatPhi(fs(cfg.tl));
+  const fp=mono([cfg.tl].concat(cfg.thigh.map(k=>k[0])),[k0].concat(cfg.thigh.map(k=>k[1])));
+  cfg.pose=function(t){
+    const ths=fs(t),tr=ft(t),ph=t<cfg.tl?seatPhi(ths):fp(t);
+    const knee={x:L.s*Math.sin(ths*rad),y:L.s*Math.cos(ths*rad)};
+    const hip={x:knee.x-L.t*Math.sin(ph*rad),y:knee.y+L.t*Math.cos(ph*rad)};
+    const sh={x:hip.x+L.h*Math.sin(tr*rad),y:hip.y+L.h*Math.cos(tr*rad)};
+    const hat={x:hip.x+.29*Math.sin(tr*rad),y:hip.y+.29*Math.cos(tr*rad)};
+    const tm={x:knee.x-.186*Math.sin(ph*rad),y:knee.y+.186*Math.cos(ph*rad)};
+    const sm={x:.186*Math.sin(ths*rad),y:.186*Math.cos(ths*rad)};
+    const cog={x:.678*hat.x+.2*tm.x+.093*sm.x+.029*.05,y:.678*hat.y+.2*tm.y+.093*sm.y+.029*.04};
+    return {t,tr,ths,ph,ankle:{x:0,y:0},knee,hip,sh,cog,hipFlex:tr+ph,kneeFlex:ph+ths};
+  };
+  cfg.path=[];for(let i=0;i<=120;i++){const p=cfg.pose(i/120);cfg.path.push({x:p.cog.x,y:p.cog.y,t:i/120});}
+  return cfg;
+}
+const MODES={
+  fast:mkMode({name:'運動量戦略',T:3.2,real:'約2秒',tl:.40,maxDF:.55,hipEnd:.90,
+    ts:[0,.14,.28,.40,.47,.55,.65,.78,.90,1],trunk:[0,9,26,36,39,35,24,10,1,0],shank:[8,9,11,13,14,15,12,6,1,0],
+    thigh:[[.47,83],[.55,70],[.65,50],[.78,22],[.90,3],[1,0]],col:'#0d6e64'}),
+  slow:mkMode({name:'安定戦略',T:6.5,real:'4〜6秒超',tl:.42,maxDF:.62,hipEnd:.94,
+    ts:[0,.15,.30,.42,.52,.62,.72,.85,.94,1],trunk:[0,14,36,50,52,45,34,13,1,0],shank:[8,10,13,17,20,21,19,9,1,0],
+    thigh:[[.52,88],[.62,80],[.72,55],[.85,20],[.94,3],[1,0]],col:'#b25e12'}),
+  overflex:mkMode({name:'体幹前傾過多パターン',T:6,real:'模式（実測ではない）',tl:.46,maxDF:.60,hipEnd:.92,
+    ts:[0,.16,.32,.46,.55,.66,.76,.88,.96,1],trunk:[0,20,48,68,72,60,38,14,2,0],shank:[8,10,13,16,18,19,16,7,1,0],
+    thigh:[[.55,86],[.66,74],[.76,50],[.88,18],[.96,3],[1,0]],col:'#b25e12'}),
+  posterior:mkMode({name:'後方重心パターン',T:6,real:'模式（実測ではない）',tl:.5,maxDF:.75,hipEnd:.95,
+    ts:[0,.15,.30,.45,.60,.72,.85,.94,1],trunk:[0,10,20,27,29,25,15,4,0],shank:[8,8,9,10,10,10,7,2,0],
+    thigh:[[.60,87],[.72,82],[.85,55],[.94,15],[1,0]],col:'#b83a2e'})
+};
+const PH=[{n:'Phase Ⅰ',s:'flexion-momentum（屈曲・運動量）',c:'#2c5c9a'},{n:'Phase Ⅱ',s:'momentum-transfer（運動量の移行）',c:'#0d7a68'},{n:'Phase Ⅲ',s:'extension（伸展）',c:'#c07410'},{n:'Phase Ⅳ',s:'stabilization（安定化）',c:'#76559c'}];
+function phaseOf(t,m){return t<m.tl?0:t<m.maxDF?1:t<m.hipEnd?2:3;}
+
+/* ---------- scene drawing ---------- */
+const TH={
+  light:{ground:'#8b9aa6',seat:'#e4ddcc',seatS:'#b9b19c',limb:'#1b2631',trunk:'#0d6e64',joint:'#fff',jointS:'#1b2631',cog:'#c9451f',txt:'#1b2631',mut:'#66727f',bosSeat:'#0d6e64',bosFoot:'#b25e12'},
+  dark:{ground:'#5c7383',seat:'rgba(255,255,255,.10)',seatS:'rgba(255,255,255,.35)',limb:'#e8f1f5',trunk:'#6fc3b6',joint:'#132330',jointS:'#e8f1f5',cog:'#ffb45c',txt:'#eef3f6',mut:'#9db4c3',bosSeat:'#6fc3b6',bosFoot:'#ffb45c'}
+};
+function line(ctx,a,b,w,col){ctx.lineCap='round';ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}
+function dot(ctx,x,y,r,f,s,lw){ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=f;ctx.fill();ctx.strokeStyle=s;ctx.lineWidth=lw||2;ctx.stroke();}
+function drawScene(ctx,o){
+  const {S,x0,gy,p,m,th}=o,T=TH[o.theme||'light'];
+  const X=x=>x0+x*S, Y=y=>gy-y*S, w=o.lw||Math.max(8,S*.055);
+  const lift=p.t>=m.tl;
+  ctx.save();
+  // ground
+  ctx.strokeStyle=T.ground;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(o.gx0,gy);ctx.lineTo(o.gx1,gy);ctx.stroke();
+  // seat
+  const sx0=X(-.56),sx1=X(.03),sy=Y(L.s);
+  ctx.fillStyle=T.seat;ctx.strokeStyle=T.seatS;ctx.lineWidth=2;
+  ctx.beginPath();ctx.roundRect(sx0,sy,sx1-sx0,S*.05,4);ctx.fill();ctx.stroke();
+  ctx.fillRect(sx0+S*.03,sy+S*.05,S*.035,gy-sy-S*.05);ctx.fillRect(sx1-S*.065,sy+S*.05,S*.035,gy-sy-S*.05);
+  // BOS bar
+  if(o.bos){
+    const seatBOS=!lift, a=seatBOS?p.hip.x-.12:HEEL, b=TOE;
+    const by=gy+S*.04;
+    ctx.globalAlpha=.9;ctx.fillStyle=seatBOS?T.bosSeat:T.bosFoot;
+    ctx.beginPath();ctx.roundRect(X(a),by,X(b)-X(a),Math.max(7,S*.035),4);ctx.fill();ctx.globalAlpha=1;
+    if(o.labels){ctx.font='700 '+Math.max(13,S*.068)+'px '+getComputedStyle(document.body).fontFamily;ctx.fillStyle=T.mut;ctx.textAlign='left';
+      ctx.fillText(seatBOS?'支持基底面（座面＋足部）':'支持基底面（足部のみ）',X(a),by+Math.max(24,S*.11));}
+  }
+  // trail
+  if(o.trail){
+    ctx.lineWidth=2.5;ctx.setLineDash([2,5]);ctx.strokeStyle=T.cog;ctx.globalAlpha=.35;ctx.beginPath();
+    m.path.forEach((q,i)=>{i?ctx.lineTo(X(q.x),Y(q.y)):ctx.moveTo(X(q.x),Y(q.y));});ctx.stroke();ctx.setLineDash([]);
+    ctx.globalAlpha=1;ctx.lineWidth=3.5;ctx.beginPath();let first=true;
+    for(const q of m.path){if(q.t>p.t)break;first?ctx.moveTo(X(q.x),Y(q.y)):ctx.lineTo(X(q.x),Y(q.y));first=false;}
+    ctx.lineTo(X(p.cog.x),Y(p.cog.y));ctx.strokeStyle=T.cog;ctx.stroke();
+  }
+  // foot
+  ctx.fillStyle=T.limb;ctx.beginPath();ctx.roundRect(X(HEEL),gy-S*.045,X(TOE)-X(HEEL),S*.045,S*.02);ctx.fill();
+  // limbs
+  const A=[X(0),Y(.06)], K=[X(p.knee.x),Y(p.knee.y)], H=[X(p.hip.x),Y(p.hip.y)], Sh=[X(p.sh.x),Y(p.sh.y)];
+  line(ctx,[X(0),Y(.045)],A,w*.8,T.limb);
+  line(ctx,A,K,w,T.limb); line(ctx,K,H,w*1.15,T.limb); line(ctx,H,Sh,w*1.5,T.trunk);
+  // head
+  const ux=Math.sin(p.tr*rad),uy=Math.cos(p.tr*rad), hr=S*.085;
+  const hc=[X(p.sh.x+ux*.03)+ux*hr*0.6+ux*0,Y(p.sh.y+uy*.03)-uy*hr*1.05];
+  dot(ctx,hc[0],hc[1],hr,T.limb,T.limb,1);
+  // joints
+  [A,K,H,Sh].forEach(q=>dot(ctx,q[0],q[1],w*.42,T.joint,T.jointS,2));
+  // COG
+  const cx=X(p.cog.x),cy=Y(p.cog.y);
+  ctx.setLineDash([4,4]);ctx.strokeStyle=T.cog;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx,gy);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=T.cog;ctx.beginPath();ctx.moveTo(cx,gy);ctx.lineTo(cx-6,gy+9);ctx.lineTo(cx+6,gy+9);ctx.closePath();ctx.fill();
+  const r=Math.max(9,S*.045);
+  ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=T.cog;ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle=T.cog;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r-1.5,-Math.PI/2,0);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r-1.5,Math.PI/2,Math.PI);ctx.closePath();ctx.fill();
+  if(o.labels){ctx.font='800 '+Math.max(14,S*.07)+'px '+getComputedStyle(document.body).fontFamily;ctx.fillStyle=T.cog;ctx.textAlign='left';ctx.fillText('重心',cx+r+6,cy+5);}
+  ctx.restore();
+}
+
+const M={mode:'fast',t:0,play:true,hold:0,trail:true,bos:true};
+const cvMain=$('#cvMain');
+function drawMain(){
+  const ctx=cfit(cvMain),m=MODES[M.mode],p=m.pose(M.t);
+  ctx.clearRect(0,0,790,424);
+  // phase strip
+  const sx=20,sw=750,evs=[0,m.tl,m.maxDF,m.hipEnd,1];
+  for(let i=0;i<4;i++){ctx.fillStyle=PH[i].c;ctx.globalAlpha=i===phaseOf(M.t,m)?1:.28;ctx.beginPath();ctx.roundRect(sx+evs[i]*sw+1,14,(evs[i+1]-evs[i])*sw-2,22,5);ctx.fill();
+    ctx.globalAlpha=1;ctx.fillStyle=i===phaseOf(M.t,m)?'#fff':'#1b2631';ctx.font='800 14px '+getComputedStyle(document.body).fontFamily;ctx.textAlign='center';ctx.fillText(['Ⅰ','Ⅱ','Ⅲ','Ⅳ'][i],sx+(evs[i]+evs[i+1])/2*sw,30);}
+  ctx.fillStyle='#1b2631';ctx.beginPath();ctx.moveTo(sx+M.t*sw,40);ctx.lineTo(sx+M.t*sw-6,49);ctx.lineTo(sx+M.t*sw+6,49);ctx.fill();
+  drawScene(ctx,{S:195,x0:470,gx0:20,gx1:770,gy:366,p,m,theme:'light',trail:M.trail,bos:M.bos,labels:true});
+  ctx.font='700 15px '+getComputedStyle(document.body).fontFamily;ctx.fillStyle='#66727f';ctx.textAlign='left';
+  ctx.fillText('実際の所要時間の目安：'+m.real+'（表示はスロー再生）',24,414);
+  // readouts
+  const ph=phaseOf(M.t,m);
+  $('#mPhase').textContent=PH[ph].n;$('#mPhSub').textContent=PH[ph].s;$('#mPhBox').style.borderLeftColor=PH[ph].c;
+  const bal=[['動的 レベル3','座面の支持基底面内で重心を移動'],['動的 レベル4','新しい支持基底面の形成と重心の移動'],['動的 レベル4','足部の基底面内で重心を上昇'],['静的 レベル1・2','立位の基底面内で重心を保持']][ph];
+  $('#mBal').textContent=bal[0];$('#mBalSub').textContent=bal[1];
+  const inFoot=p.cog.x>=HEEL&&p.cog.x<=TOE;
+  $('#mIn').textContent=M.t<m.tl?(inFoot?'座面・足部の両BOS内':'座面BOS内'):(inFoot?'足部BOS内':'足部BOSの後方（慣性で上昇）');
+  $('#mIn').style.color=(M.t>=m.tl&&!inFoot)?'#b25e12':'#1b2631';
+  $('#aTr').textContent=Math.round(p.tr)+'°';$('#aHip').textContent=Math.round(p.hipFlex)+'°';$('#aKnee').textContent=Math.round(p.kneeFlex)+'°';$('#aAnk').textContent=Math.round(p.ths)+'°';
+  $('#mScrub').value=Math.round(M.t*1000);
+}
+$$('#mMode button').forEach(b=>b.onclick=()=>{M.mode=b.dataset.m;$$('#mMode button').forEach(x=>x.classList.toggle('on',x===b));M.t=0;M.hold=0;M.play=true;$('#mPlay').textContent='■ 停止';$('#mPlay').classList.add('on');drawMain();});
+$('#mPlay').onclick=()=>{M.play=!M.play;$('#mPlay').textContent=M.play?'■ 停止':'▶ 再生';$('#mPlay').classList.toggle('on',M.play);};
+$('#mScrub').oninput=e=>{M.play=false;$('#mPlay').textContent='▶ 再生';$('#mPlay').classList.remove('on');M.t=e.target.value/1000;drawMain();};
+$('#mTrail').onchange=e=>{M.trail=e.target.checked;drawMain();};$('#mBos').onchange=e=>{M.bos=e.target.checked;drawMain();};
+
+/* ---------- pose strips (slide 8) ---------- */
+function drawPoses(){$$('canvas.pose').forEach(c=>{
+  const ctx=cfit(c),m=MODES[c.dataset.mode],t=+c.dataset.t;ctx.clearRect(0,0,220,250);
+  drawScene(ctx,{S:118,x0:150,gx0:6,gx1:214,gy:212,p:m.pose(t),m,theme:'light',trail:false,bos:true,labels:false,lw:8});
+});}
+
+/* ---------- balance canvas (slide 6) ---------- */
+const cvBal=$('#cvBal');
+function drawBal(){
+  const ctx=cfit(cvBal),W=640,H=372;ctx.clearRect(0,0,W,H);
+  const th=+$('#balTh').value,h=+$('#balH').value/100,follow=$('#balFollow').checked;
+  $('#balThV').textContent=th+'°';$('#balHV').textContent=h.toFixed(2)+' m';
+  const SX=480,SY=150,x0=400,gy=296,X=x=>x0+x*SX,Y=y=>gy-y*SY,F=getComputedStyle(document.body).fontFamily;
+  const cog={x:h*Math.sin(th*rad),y:h*Math.cos(th*rad)};
+  const copx=follow?Math.max(HEEL,Math.min(TOE,cog.x)):(HEEL+TOE)/2;
+  const d=cog.x-copx, out=cog.x>TOE||cog.x<HEEL;
+  ctx.strokeStyle='#8b9aa6';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(20,gy);ctx.lineTo(620,gy);ctx.stroke();
+  ctx.fillStyle='#0d6e64';ctx.fillRect(X(HEEL),gy+2,X(TOE)-X(HEEL),8);
+  ctx.font='700 14.5px '+F;ctx.fillStyle='#0d6e64';ctx.textAlign='center';ctx.fillText('支持基底面（足部）',X((HEEL+TOE)/2),gy+30);
+  const top={x:cog.x*1.8,y:cog.y*1.8};
+  ctx.lineCap='round';ctx.strokeStyle='#1b2631';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(X(0),Y(0.02));ctx.lineTo(X(top.x*.93),Y(top.y*.93));ctx.stroke();
+  dot(ctx,X(top.x),Y(top.y)-4,17,'#1b2631','#1b2631',1);
+  ctx.fillStyle='#1b2631';ctx.beginPath();ctx.roundRect(X(HEEL),gy-9,X(TOE)-X(HEEL),9,4);ctx.fill();
+  const cx=X(cog.x),cy=Y(cog.y),px=X(copx);
+  function arrow(x1,y1,x2,y2,col,w){ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-12*Math.cos(a-.4),y2-12*Math.sin(a-.4));ctx.lineTo(x2-12*Math.cos(a+.4),y2-12*Math.sin(a+.4));ctx.closePath();ctx.fill();}
+  ctx.setLineDash([4,4]);ctx.strokeStyle='#c9451f';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx,gy);ctx.stroke();ctx.setLineDash([]);
+  arrow(cx,cy+12,cx,cy+62,'#5a626c',4);
+  ctx.font='800 15px '+F;ctx.fillStyle='#5a626c';ctx.textAlign='left';ctx.fillText('重力',cx+10,cy+44);
+  arrow(px,gy-2,px,gy-62,'#2a7d4f',4);
+  ctx.fillStyle='#2a7d4f';ctx.textAlign=(d>=0)?'right':'left';ctx.fillText('床反力',px+(d>=0?-10:10),gy-40);
+  dot(ctx,cx,cy,11,'#fff','#c9451f',3.5);ctx.fillStyle='#c9451f';ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,9.5,-Math.PI/2,0);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,9.5,Math.PI/2,Math.PI);ctx.closePath();ctx.fill();
+  ctx.font='800 15px '+F;ctx.fillStyle='#c9451f';ctx.textAlign='left';ctx.fillText('重心 COG',cx+16,cy-10);
+  if(Math.abs(d)>0.004){
+    const yy=gy-18;ctx.strokeStyle='#b25e12';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(px,yy);ctx.lineTo(cx,yy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(px,yy-7);ctx.lineTo(px,yy+7);ctx.moveTo(cx,yy-7);ctx.lineTo(cx,yy+7);ctx.stroke();
+    ctx.font='800 15.5px '+F;ctx.fillStyle='#b25e12';ctx.textAlign=d>0?'left':'right';ctx.fillText('アーム '+(Math.abs(d)*100).toFixed(1)+' cm',cx+(d>0?10:-10),yy-8);
+  }
+  const Mo=60*9.8*Math.abs(d);
+  ctx.fillStyle='rgba(255,255,255,.95)';ctx.strokeStyle='#d8d3c7';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(14,14,290,94,10);ctx.fill();ctx.stroke();
+  ctx.textAlign='left';ctx.font='700 15px '+F;ctx.fillStyle='#66727f';ctx.fillText('重心の変位　h·sinθ ＝ '+(cog.x*100).toFixed(1)+' cm',26,38);
+  ctx.fillStyle='#1b2631';ctx.font='800 20px '+F;ctx.fillText('重力モーメント '+Mo.toFixed(1)+' N·m',26,68);
+  ctx.font='600 13.5px '+F;ctx.fillStyle='#66727f';ctx.fillText('＝ 60 kg × 9.8 m/s² × アーム（計算例）',26,93);
+  ctx.textAlign='center';ctx.font='800 17px '+F;
+  let msg,col;
+  if(out){msg='重心が支持基底面の外：COPでは打ち消せず、倒れ込む';col='#b83a2e';}
+  else if(Math.abs(d)<0.005){msg='作用線が一致：力学的に平衡';col='#2a7d4f';}
+  else{msg='作用線がずれ、重力モーメントが回転を生む';col='#b25e12';}
+  ctx.fillStyle=col;ctx.fillText(msg,W/2,352);
+  ctx.font='600 13px '+F;ctx.fillStyle='#8a95a0';ctx.textAlign='left';ctx.fillText('横方向を拡大して表示',14,H-6);
+}
+['balTh','balH'].forEach(i=>$('#'+i).addEventListener('input',drawBal));$('#balFollow').addEventListener('change',drawBal);
+
+/* ---------- strategy canvas (slide 9) ---------- */
+const cvStrat=$('#cvStrat');
+function drawStrat(){
+  const ctx=cfit(cvStrat),F=getComputedStyle(document.body).fontFamily;ctx.clearRect(0,0,480,380);
+  const X=x=>62+(x+.30)*950, Y=y=>322-(y-.40)*520;
+  ctx.font='600 13px '+F;ctx.textAlign='right';ctx.fillStyle='#8a95a0';
+  [.5,.6,.7,.8,.9].forEach(v=>{ctx.strokeStyle='#eee9dc';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(64,Y(v));ctx.lineTo(470,Y(v));ctx.stroke();ctx.fillText(v.toFixed(1)+' m',58,Y(v)+4);});
+  ctx.fillStyle='rgba(13,110,100,.10)';ctx.fillRect(X(HEEL),30,470-X(HEEL),300);
+  ctx.setLineDash([5,5]);ctx.strokeStyle='#0d6e64';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(HEEL),30);ctx.lineTo(X(HEEL),330);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#0d6e64';ctx.fillRect(X(HEEL),332,470-X(HEEL),8);
+  ctx.font='800 14.5px '+F;ctx.textAlign='left';ctx.fillText('足部の支持基底面',X(HEEL)+8,50);
+  ctx.textAlign='right';ctx.fillText('後縁',X(HEEL)-6,50);
+  [['slow','#b25e12'],['fast','#0d6e64']].forEach(([k,c])=>{
+    const m=MODES[k];ctx.strokeStyle=c;ctx.lineWidth=4;ctx.lineJoin='round';ctx.beginPath();
+    m.path.forEach((q,i)=>{i?ctx.lineTo(X(q.x),Y(q.y)):ctx.moveTo(X(q.x),Y(q.y));});ctx.stroke();
+    const pl=m.pose(m.tl).cog,p0=m.path[0];
+    dot(ctx,X(p0.x),Y(p0.y),6,'#fff',c,3);dot(ctx,X(pl.x),Y(pl.y),8,c,'#fff',2.5);
+    ctx.fillStyle=c;const q=m.path[112],r=m.path[120];const a=Math.atan2(Y(r.y)-Y(q.y),X(r.x)-X(q.x));ctx.beginPath();ctx.moveTo(X(r.x),Y(r.y));ctx.lineTo(X(r.x)-13*Math.cos(a-.45),Y(r.y)-13*Math.sin(a-.45));ctx.lineTo(X(r.x)-13*Math.cos(a+.45),Y(r.y)-13*Math.sin(a+.45));ctx.closePath();ctx.fill();
+  });
+  ctx.textAlign='left';
+  ctx.font='800 16px '+F;ctx.fillStyle='#0d6e64';ctx.fillText('運動量戦略',68,Y(.86));
+  ctx.font='600 14px '+F;ctx.fillText('前下方への移動が小さく、',68,Y(.86)+20);ctx.fillText('基底面の後方でS字に上昇',68,Y(.86)+38);
+  ctx.font='800 16px '+F;ctx.fillStyle='#b25e12';ctx.fillText('安定戦略',68,Y(.47));
+  ctx.font='600 14px '+F;ctx.fillText('前下方へ大きく移動し、',68,Y(.47)+20);ctx.fillText('基底面内から円弧を描く',68,Y(.47)+38);
+  ctx.fillStyle='#66727f';ctx.font='700 13.5px '+F;ctx.fillText('○ 開始　● 殿部離床',64,20);
+  ctx.textAlign='left';ctx.fillText('← 後方　　重心の前後位置　　前方 →',150,368);
+}
+/* ---------- spatial pelvis canvas (slide 21) ---------- */
+let raf=0,last=0;
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(M.play){ if(M.hold>0){M.hold-=dt;if(M.hold<=0){M.t=0;}} else{M.t+=dt/MODES[M.mode].T;if(M.t>=1){M.t=1;M.hold=1.2;}} drawMain(); }
+  raf=requestAnimationFrame(loop);}
+demos.su_main=function(c){drawMain();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);return {stop(){cancelAnimationFrame(raf)}};};
+demos.su_bal=function(){drawBal();return {stop(){}}};
+demos.su_strat=function(){drawStrat();return {stop(){}}};
+demos.su_poses=function(){drawPoses();return {stop(){}}};
+})();
+
+/* ================= init ================= */
+fit();
+const hash=parseInt(location.hash.slice(1));show(isNaN(hash)?0:hash-1,false);
+
+</script></body></html>
