@@ -2,11 +2,6 @@
 <html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>立ち上がり動作の身体運動学とバランス｜操作できる3枚</title>
-<script>
-/* 公開期間：2026年12月31日まで（2027-01-01 00:00 JST 以降は表示しない） */
-(function(){if(Date.now()>=Date.parse('2027-01-01T00:00:00+09:00')){
-document.open();document.write('<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>公開期間は終了しました</title></head><body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f4f2ec;color:#1b2631"><div style="text-align:center;padding:24px"><h1 style="font-size:28px">公開期間は終了しました</h1><p style="margin-top:12px;color:#5d6b7a">この教材は2026年12月31日まで公開していました。</p></div></body></html>');document.close();}})();
-</script>
 <style>
 :root{
   --bg:#f7f5f0;--paper:#fff;--ink:#1c2733;--mute:#5d6b7a;--line:#d9d4c8;
@@ -180,6 +175,15 @@ body.showclock #clock{display:block}
 .su table.t td{padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface)}
 .su table.t td:first-child{font-weight:800;white-space:nowrap}
 </style></head><body>
+<script>
+/* 公開期間：2026年12月31日まで（2027-01-01 00:00 JST 以降は教材を表示しない） */
+(function(){if(Date.now()<Date.parse('2027-01-01T00:00:00+09:00'))return;
+var st=document.createElement('style');st.textContent='body>*:not(#expired-note){display:none!important}body{background:#f4f2ec!important;overflow:auto!important}#expired-note{display:flex!important;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;color:#1b2631;text-align:center}';
+document.head.appendChild(st);
+var d=document.createElement('div');d.id='expired-note';d.innerHTML='<div style="padding:24px"><h1 style="font-size:28px">公開期間は終了しました</h1><p style="margin-top:12px;color:#5d6b7a">この教材は2026年12月31日まで公開していました。</p></div>';
+document.body.insertBefore(d,document.body.firstChild);})();
+</script>
+
 <div id="clock">経過 00:00</div>
 <div id="nav"><button id="nav-prev">◀</button><button id="nav-next">▶</button><button id="nav-ov">一覧</button><button id="nav-fs">全画面</button></div>
 <div id="bar"></div>
